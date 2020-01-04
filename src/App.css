@@ -1,38 +1,42 @@
-.App {
-  text-align: center;
-}
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.DropArea::after {
+    content: "";
 }
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.Item {
+    box-sizing: border-box;
+    border-width: 1px;
+    border-color: #cecece;
+    border-style: solid;
+    padding: 16px;
+    cursor: grab;
 }
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+.Item:hover {
+    box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
 }
-
-.App-link {
-  color: #61dafb;
+.TilePaper {
+    position: absolute;
+    transition: all 80ms ease-out 0s;
+    background-color: rgba(255,255,255, 1.0);
+    box-sizing: border-box;
+    border-radius: 2px;
+    border-width: 1px;
+    border-style: solid;
+    border-color: #efefef;
+    cursor: grab;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
 }
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+ 
+.TileResizeHandle {
+    position: absolute;
+    z-index: 1;
+    right: 0;
+    bottom: 0;
+    border-style: solid;
+    border-bottom-color: rgba(0,0,0,.75);
+    border-left-color: transparent;
+    border-top-width: 0;
+    border-right-width: 0;
+    border-bottom-width: 24px;
+    border-left-width: 24px;
+    cursor: nwse-resize;
 }
