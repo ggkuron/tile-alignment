@@ -125,8 +125,9 @@ export function overwrap(source: [string, Tile], others: Tiles): OverwrapResult 
                 overwrapped, 
                 rest
             } = acm
+            if(source[0] === k) return acm;
             const o = others[k];
-            const r = source[0] !== k && isOverwrap(source[1], o);
+            const r = isOverwrap(source[1], o);
             return {
                 overwrapped: r? {
                     ...overwrapped,

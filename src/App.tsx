@@ -264,48 +264,19 @@ const DropArea: React.FC<DropAreaProps> = ({
         position: "relative",
         flexBasis: "100%",
         flexShrink: 1,
-        ...style
+       ...style
       }}
       className="DropArea"
       ref={bindContainerRef}
     >
-      {
-        [...Array(CANVAS_SIZE).keys()].map(
-          y => [ ...Array(CANVAS_SIZE).keys()].map(
-            x => {
-              const p = tilePosition({x, y, rowSpan: 1, colSpan: 1});
-              return (
-                <div
-                  style={{
-                    position: "absolute",
-                    left: p.x,
-                    top: p.y,
-                    width: TILE_SIZE,
-                    height: TILE_SIZE,
-                    paddingRight: 16,
-                    paddingBottom: 16,
-                  }}
-                  key={`grid-${y}-${x}`}
-                >
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: 0,
-                      right: 16,
-                      bottom: 16,
-                      left: 0,
-                      backgroundColor: "#cecece",
-                    }}
-                  />
-                </div>
-              )
-            }
-          )
-        )
-      }
       <div
         style={{
           position: "absolute",
+          width: (TILE_SIZE + TILE_GAP) * CANVAS_SIZE,
+          height: (TILE_SIZE + TILE_GAP) * CANVAS_SIZE,
+          backgroundImage: `linear-gradient(to bottom, transparent ${(1 - TILE_GAP / TILE_SIZE) * 100}%, white ${(1 - TILE_GAP / TILE_SIZE) * 100}%), linear-gradient(to right, #cecece ${(1 - TILE_GAP / TILE_SIZE) * 100}%, white ${(1 - TILE_GAP / TILE_SIZE) * 100}%)`,
+          backgroundSize: `${TILE_SIZE + TILE_GAP}px ${TILE_SIZE + TILE_GAP}px`,
+          backgroundPosition: `top ${TILE_GAP}px left ${TILE_GAP}px`,
         }}
       />
       {
