@@ -85,51 +85,54 @@ function applyCommands(tiles: Tiles, cmds: Command[]): Tiles {
 }
 
 const App: React.FC = () => {
-  const [tiles, updateTiles] = React.useState<Tiles>({});
-  const [cmds, updateCommands] = React.useState<Command[]>([]);
+  const [{tiles, cmds}, updater] = React.useState<{ tiles: Tiles, cmds:  Command[]}>({tiles: {}, cmds: []});
 
   const commit = React.useCallback(() => {
-    updateCommands(
-      cmds => {
-        updateTiles(
-          tiles => applyCommands(tiles, cmds)
-        );
-        return []
-      }
+    updater(
+      ({ tiles, cmds }) => ({
+        tiles: applyCommands(tiles, cmds),
+        cmds: []
+      })
     );
  }, []);
   const updateDragging = React.useCallback((id: string, position: Tile) => {
-    updateCommands(
-      [
-        {
-          type: "drag",
-          id,
-          tile: position
-        },
-        {
-          type: "move",
-          differences: adjust({}, [id, position], tiles)[1]
-        },
-      ]
+    updater(
+      ({tiles}) => ({
+        tiles,
+        cmds: [
+          {
+            type: "drag",
+            id,
+            tile: position
+          },
+          {
+            type: "move",
+            differences: adjust({}, [id, position], tiles)[1]
+          },
+        ]
+      })
     )
-  }, [tiles])
+  }, [])
   const resizeTile = React.useCallback((id: string, size: TileSize) => {
-    updateCommands(
-      [
-        {
-          type: "resize",
-          id,
-          size
-        },
-        {
-          type: "move",
-          differences: adjust({}, [id, { ...tiles[id], ...size }], tiles)[1]
-        }
-      ]
+    updater(
+      ({tiles}) => ({
+        tiles,
+        cmds: [
+          {
+            type: "resize",
+            id,
+            size
+          },
+          {
+            type: "move",
+            differences: adjust({}, [id, { ...tiles[id], ...size }], tiles)[1]
+          }
+        ]
+      })
     )
-  }, [tiles])
+  }, [])
   const rollback = React.useCallback(()=> {
-    updateCommands([]);
+    updater(({tiles}) => ({tiles, cmds: []}));
   }, [])
 
   return (

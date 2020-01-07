@@ -65,12 +65,11 @@ export function adjust(
     const fixed_ = { ...fixed, [currentId]: current };
     if (Object.keys(overwrapped).length === 0) return [true, {}, fixed_ ];
 
-    return Object.keys(overwrapped).reduce<[boolean, Differences, Tiles]>(
-        (acm, k) => {
+    return overwrapped.reduce<[boolean, Differences, Tiles]>(
+        (acm, [k, o]) => {
             const [applicable, diffs, fixed] = acm;
             if (!applicable) return acm;
 
-            const o = overwrapped[k];
             return Array.from(takeStrategy(strategy, rootCall)).reduce<[boolean, Differences, Tiles]>(
                 (acm, [strategy, action]) => {
                     const [resolved, diffs, fixed] = acm;
@@ -118,12 +117,16 @@ export function adjust(
 }
 
 interface OverwrapResult {
+    overwrapped: [string, Tile][];
+    rest: Tiles;
+}
+interface OverwrapIntermediate {
     overwrapped: Tiles;
     rest: Tiles;
 }
 
 export function overwrap(source: [string, Tile], others: Tiles): OverwrapResult {
-    return Object.keys(others).reduce<OverwrapResult>(
+    const r = Object.keys(others).reduce<OverwrapIntermediate>(
         (acm, k) => {
             const {
                 overwrapped, 
@@ -145,6 +148,16 @@ export function overwrap(source: [string, Tile], others: Tiles): OverwrapResult 
         },
         { overwrapped: {}, rest: {} }
     )
+    return {
+        overwrapped: Object.keys(r.overwrapped)
+            .map<[string, Tile]>(k => [k, r.overwrapped[k]])
+            .sort((a, b) => (
+                a[1].y === b[1].y ?
+                    a[1].x - b[1].x :
+                    a[1].y - b[1].y
+            )),
+        rest: r.rest
+    };
 }
 export function isOverwrap(s: Tile, t: Tile): boolean {
    return (
