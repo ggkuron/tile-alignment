@@ -319,6 +319,7 @@ interface HandleResizeParam<E> {
   resizeTile: (id: string, size: TileSize) => void;
   getOffset: (ev: E) => { clientX: number; clientY: number } | false;
   origin: { x: number, y: number };
+  preAction: (e: E) => void;
 } 
 
 function handleResizing<E>({
@@ -327,9 +328,11 @@ function handleResizing<E>({
   updateSize,
   resizeTile,
   getOffset,
-  origin
+  origin,
+  preAction,
 }: HandleResizeParam<E>) {
   return (ev: E) => {
+    preAction(ev);
     updateSize(
       size => {
         const offset = getOffset(ev);
@@ -394,7 +397,8 @@ const TileComp: React.FC<TileProps> = ({
       origin: { x: ev.clientX, y: ev.clientY },
       updateSize,
       resizeTile,
-      initialSize
+      initialSize,
+      preAction: () => {},
     });
     window.addEventListener("mousemove", handleMouseMove)
     window.addEventListener("mouseup", function handleMouseup(ev) {
@@ -406,9 +410,12 @@ const TileComp: React.FC<TileProps> = ({
   }, [id, initialSize, updateSize, commit, resizeTile])
   const handleTouchStart = React.useCallback((ev: React.TouchEvent<{}>) => {
     if (ev.touches.length === 1) {
+      ev.preventDefault();
+      ev.stopPropagation();
       const t = ev.touches[0];
       updateSize(initialSize);
       const handleTouchMove = handleResizing<TouchEvent>({
+        preAction: ev => ev.preventDefault(),
         id,
         getOffset: ev => ev.touches.length === 1 && ev.touches[0],
         origin: { x: t.clientX, y: t.clientY },

@@ -60,7 +60,8 @@ export function adjust(
         rest
     } = overwrap([currentId, current], others);
 
-    if (Object.keys(overwrapped).length === 0) return [true, {}, { ...fixed, [currentId]: current }];
+    const fixed_ = { ...fixed, [currentId]: current };
+    if (Object.keys(overwrapped).length === 0) return [true, {}, fixed_];
 
     return Object.keys(overwrapped).reduce<[boolean, Differences, Tiles]>(
         (acm, k) => {
@@ -69,19 +70,19 @@ export function adjust(
 
             const o = overwrapped[k];
             return Array.from(takeStrategy(strategy)).reduce<[boolean, Differences, Tiles]>(
-                (acm, action) => {
+                (acm, action, strategy) => {
                     const [resolved, diffs, fixed] = acm;
                     if (resolved) return acm;
                     let diff = action(current)(o);
                     let moved = addDiff(o, diff);
                     if (moved.x < 0 || moved.y < 0) return acm;
-                    
+
                     let fixedOverwaps = Object.keys(fixed).filter(k => isOverwrap(fixed[k], moved));
                     if (fixedOverwaps.length > 0) {
                         if (strategy === StrategyOrder.Last) {
                             do {
-                                const o = fixedOverwaps[0];
-                                diff = action(fixed[o])(moved);
+                                const fo = fixedOverwaps[0];
+                                diff = action(fixed[fo])(o);
                                 moved = addDiff(moved, diff);
                                 fixedOverwaps = Object.keys(fixed).filter(k => isOverwrap(fixed[k], moved));
                             } while (fixedOverwaps.length > 0)
@@ -100,16 +101,16 @@ export function adjust(
                         true,
                         {
                             ...diffs,
+                            ...adjusted[1],
                             [k]: diff,
-                            ...adjusted[1]
                         },
-                        adjusted[2]
+                        adjusted[2],
                     ]
                 },
                 [false, diffs, fixed]
             );
         },
-        [true, {}, { ...fixed, [currentId]: current }]
+        [true, {}, fixed_]
     )
 }
 
