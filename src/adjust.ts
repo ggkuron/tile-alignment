@@ -34,17 +34,18 @@ enum StrategyOrder {
     Sencod = 1,
     Last = 2
 }
-function* takeStrategy(dir: StrategyOrder): Generator<Strategy> {
+function* takeStrategy(dir: StrategyOrder, rootCall: boolean): Generator<[StrategyOrder, Strategy]> {
     /*eslint no-fallthrough: ["error", { "commentPattern": "fallthrough" }]*/
     switch (dir) {
         case StrategyOrder.First:
-            yield s => t => ({ x: 0, y: s.y - t.rowSpan - t.y }); // 1. 上
+            yield [StrategyOrder.First, s => t => ({ x: 0, y: s.y - t.rowSpan - t.y })]; // 1. 上
             // fallthrough
         case StrategyOrder.Sencod:
-            yield s => t => ({ y: 0, x: s.x - t.colSpan - t.x }); // 2. 左
+            yield [StrategyOrder.Sencod, s => t => ({ y: 0, x: s.x - t.colSpan - t.x })]; // 2. 左
+            if(!rootCall) break;
             // fallthrough 
         case StrategyOrder.Last:
-            yield s => t => ({ x: 0, y: s.y + s.rowSpan - t.y });  // 3. 下
+             yield [StrategyOrder.Last, s => t => ({ x: 0, y: s.y + s.rowSpan - t.y })];  // 3. 下
             // fallthrough
     }
 }
@@ -53,7 +54,8 @@ export function adjust(
     fixed: Tiles,
     [currentId, current]: [string, Tile],
     others: Tiles,
-    strategy: StrategyOrder = StrategyOrder.First 
+    strategy: StrategyOrder = StrategyOrder.First,
+    rootCall: boolean = true,
 ): [boolean, Differences, Tiles] {
     const {
         overwrapped,
@@ -61,7 +63,7 @@ export function adjust(
     } = overwrap([currentId, current], others);
 
     const fixed_ = { ...fixed, [currentId]: current };
-    if (Object.keys(overwrapped).length === 0) return [true, {}, fixed_];
+    if (Object.keys(overwrapped).length === 0) return [true, {}, fixed_ ];
 
     return Object.keys(overwrapped).reduce<[boolean, Differences, Tiles]>(
         (acm, k) => {
@@ -69,8 +71,8 @@ export function adjust(
             if (!applicable) return acm;
 
             const o = overwrapped[k];
-            return Array.from(takeStrategy(strategy)).reduce<[boolean, Differences, Tiles]>(
-                (acm, action, strategy) => {
+            return Array.from(takeStrategy(strategy, rootCall)).reduce<[boolean, Differences, Tiles]>(
+                (acm, [strategy, action]) => {
                     const [resolved, diffs, fixed] = acm;
                     if (resolved) return acm;
                     let diff = action(current)(o);
@@ -93,7 +95,8 @@ export function adjust(
                         fixed,
                         [k, moved],
                         rest,
-                        strategy
+                        strategy,
+                        false
                     );
 
                     if (!adjusted[0]) return acm;
