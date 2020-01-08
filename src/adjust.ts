@@ -74,21 +74,24 @@ export function adjust(
                 (acm, [strategy, action]) => {
                     const [resolved, diffs, fixed] = acm;
                     if (resolved) return acm;
-                    let diff = action(current)(o);
-                    let moved = addDiff(o, diff);
-                    if (moved.x < 0 || moved.y < 0) return acm;
 
-                    let fixedOverwaps = Object.keys(fixed).filter(k => isOverwrap(fixed[k], moved));
-                    if (fixedOverwaps.length > 0) {
-                        if (strategy === StrategyOrder.Last) {
-                            do {
-                                const fo = fixedOverwaps[0];
-                                diff = action(fixed[fo])(o);
-                                moved = addDiff(moved, diff);
-                                fixedOverwaps = Object.keys(fixed).filter(k => isOverwrap(fixed[k], moved));
-                            } while (fixedOverwaps.length > 0)
-                        } else return acm;
-                    }
+                    const movedResult = (
+                        function getMovedPoint(t: Tile, diff: Diff): [Tile, Diff] | null {
+                            const moved = addDiff(o, diff);
+                            if (moved.x < 0 || moved.y < 0) return null;
+                            const { overwrapped: fixedOverwaps } = overwrap([k, moved], fixed);
+                            if (fixedOverwaps.length > 0) {
+                                if (strategy === StrategyOrder.Last) {
+                                    const fo = fixedOverwaps[0][1];
+                                    const diff_ = action(fo)(o);
+                                    return getMovedPoint(addDiff(moved, diff_), diff_)
+                                } else return null;
+                            } else return [moved, diff]
+                        }
+                    )(current, action(current)(o))
+
+                    if(!movedResult) return acm;
+                    const [moved, diff] = movedResult;
 
                     const adjusted = adjust(
                         fixed,
@@ -99,9 +102,10 @@ export function adjust(
                     );
 
                     if (!adjusted[0]) return acm;
+
                     return [
                         true,
-                        {
+                        { /// 重複していた場合後ろの解決方法が最終的な結果
                             ...diffs,
                             ...adjusted[1],
                             [k]: diff,
